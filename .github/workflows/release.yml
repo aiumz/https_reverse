@@ -17,19 +17,18 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             archive: tar
-            packages: ''
+
           - os: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             archive: tar
-            packages: 'gcc-aarch64-linux-gnu g++-aarch64-linux-gnu'
-          - os: macos-13
+
+          - os: macos-latest
             target: x86_64-apple-darwin
             archive: zip
-            packages: ''
-          - os: macos-14
+
+          - os: macos-latest
             target: aarch64-apple-darwin
             archive: zip
-            packages: ''
 
     env:
       BIN_NAME: https_reverse
@@ -40,30 +39,20 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
 
-      - name: Install Rust target
-        run: rustup target add ${{ matrix.target }}
-
-      - name: Install cross toolchain (Linux only)
-        if: contains(matrix.os, 'ubuntu') && matrix.packages != ''
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ${{ matrix.packages }}
-          echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "CXX=aarch64-linux-gnu-g++" >> $GITHUB_ENV
-
-      - name: Cache Cargo
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: target
+      - name: Install cross
+        if: startsWith(matrix.target, 'x86_64-unknown') || startsWith(matrix.target, 'aarch64-unknown')
+        run: cargo install cross --git https://github.com/cross-rs/cross
 
       - name: Build release binary
-        run: cargo build --release --target ${{ matrix.target }}
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            cross build --release --target ${{ matrix.target }}
+          else
+            cargo build --release --target ${{ matrix.target }}
+          fi
 
       - name: Package artifact
-        shell: bash
         run: |
           BIN_PATH=target/${{ matrix.target }}/release/${BIN_NAME}
           ASSET_NAME=${BIN_NAME}-${GITHUB_REF_NAME}-${{ matrix.target }}
