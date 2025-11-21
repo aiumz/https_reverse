@@ -1,0 +1,150 @@
+{
+  "port": 443,
+  "rules": [
+    {
+      "name": "agile 前端代理",
+      "location": "/static/agile/",
+      "proxy_pass": "http://127.0.0.1:11000"
+    },
+    {
+      "name": "agile 服务端代理",
+      "location": "/api/agile/",
+      "proxy_pass": 11001
+    },
+    {
+      "name": "pjm 前端代理",
+      "location": "/static/pjm/",
+      "proxy_pass": 11000
+    },
+    {
+      "name": "pjm 服务端代理",
+      "location": "/api/pjm/",
+      "proxy_pass": 11001
+    },
+    {
+      "name": "pipe 前端代理",
+      "location": "/static/pipeline/",
+      "proxy_pass": 12000
+    },
+    {
+      "name": "pipe 服务端代理",
+      "location": "/api/pipeline/",
+      "proxy_pass": 12001
+    },
+    {
+      "name": "testhub 前端代理",
+      "location": "/static/testhub/",
+      "proxy_pass": 13000
+    },
+    {
+      "name": "testhub 服务端代理",
+      "location": "/api/testhub/",
+      "proxy_pass": 13001
+    },
+    {
+      "name": "trace 前端代理",
+      "location": "/static/tracking/",
+      "proxy_pass": 14000
+    },
+    {
+      "name": "trace 服务端代理",
+      "location": "/api/tracking/",
+      "proxy_pass": 14001
+    },
+    {
+      "name": "wiki 前端代理",
+      "location": "/static/wiki/",
+      "proxy_pass": 15000
+    },
+    {
+      "name": "wiki 服务端代理",
+      "location": "/api/wiki/",
+      "proxy_pass": 15001
+    },
+    {
+      "name": "plan 前端代理",
+      "location": "/static/plan/",
+      "proxy_pass": 16000
+    },
+    {
+      "name": "plan 服务端代理",
+      "location": "/api/plan/",
+      "proxy_pass": 16001
+    },
+    {
+      "name": "teams 前端代理",
+      "location": "/static/teams/",
+      "proxy_pass": 17000
+    },
+    {
+      "name": "teams 服务端代理",
+      "location": "/api/teams/",
+      "proxy_pass": 17001
+    },
+    {
+      "name": "flow 前端代理",
+      "location": "/static/flow/",
+      "proxy_pass": 18000
+    },
+    {
+      "name": "flow 服务端代理",
+      "location": "/api/flow/",
+      "proxy_pass": 18001
+    },
+    {
+      "name": "access 前端代理",
+      "location": "/static/access/",
+      "proxy_pass": 19000
+    },
+    {
+      "name": "access 服务端代理",
+      "location": "/api/access/",
+      "proxy_pass": 19001
+    },
+    {
+      "name": "admin 前端代理",
+      "location": "/static/admin/",
+      "proxy_pass": 10001
+    },
+    {
+      "name": "ship 前端代理",
+      "location": "/static/ship/",
+      "proxy_pass": 11100
+    },
+    {
+      "name": "ship 服务端代理",
+      "location": "/api/ship/",
+      "proxy_pass": 11101
+    },
+    {
+      "name": "insight 前端代理",
+      "location": "/static/insight/",
+      "proxy_pass": 11200
+    },
+    {
+      "name": "insight 服务端代理",
+      "location": "/api/insight/",
+      "proxy_pass": 11201
+    },
+    {
+      "name": "typhon 服务端代理",
+      "location": "/api/typhon/",
+      "proxy_pass": 10010
+    },
+    {
+      "name": "ladon 服务端代理",
+      "location": "/api/ladon/",
+      "proxy_pass": 10030
+    },
+    {
+      "name": "marketplace 服务端代理",
+      "location": "/api/marketplace/",
+      "proxy_pass": 10021
+    },
+    {
+      "name": "open/admin 服务端代理",
+      "location": "/api/open/admin/",
+      "proxy_pass": 30001
+    }
+  ]
+}

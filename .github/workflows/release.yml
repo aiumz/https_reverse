@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            archive: tar
+            packages: ''
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            archive: tar
+            packages: 'gcc-aarch64-linux-gnu'
+          - os: macos-13
+            target: x86_64-apple-darwin
+            archive: zip
+            packages: ''
+          - os: macos-14
+            target: aarch64-apple-darwin
+            archive: zip
+            packages: ''
+    env:
+      BIN_NAME: https_reverse
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Install target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Install cross toolchain
+        if: ${{ matrix.packages != '' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.packages }}
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: target
+
+      - name: Build release binary
+        run: cargo build --locked --release --target ${{ matrix.target }}
+
+      - name: Package artifact
+        shell: bash
+        run: |
+          BIN_PATH=target/${{ matrix.target }}/release/${BIN_NAME}
+          ASSET_NAME=${BIN_NAME}-${GITHUB_REF_NAME}-${{ matrix.target }}
+
+          if [[ "${{ matrix.archive }}" == "zip" ]]; then
+            zip -j "${ASSET_NAME}.zip" "$BIN_PATH"
+            echo "ASSET_NAME=${ASSET_NAME}.zip" >> $GITHUB_ENV
+          else
+            tar -czf "${ASSET_NAME}.tar.gz" -C target/${{ matrix.target }}/release ${BIN_NAME}
+            echo "ASSET_NAME=${ASSET_NAME}.tar.gz" >> $GITHUB_ENV
+          fi
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ASSET_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
