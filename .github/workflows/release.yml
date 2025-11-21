@@ -1,73 +1,75 @@
-name: Release
+name: Build Release
 
 on:
   push:
     tags:
       - 'v*'
 
-permissions:
-  contents: write
-
 jobs:
-  release:
+  build:
+    name: Build (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
+
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            archive: tar
-
+            target: x86_64-unknown-linux-musl
           - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            archive: tar
-
+            target: aarch64-unknown-linux-musl
+          - os: ubuntu-latest
+            target: x86_64-pc-windows-gnu
           - os: macos-latest
             target: x86_64-apple-darwin
-            archive: zip
-
           - os: macos-latest
             target: aarch64-apple-darwin
-            archive: zip
-
-    env:
-      BIN_NAME: https_reverse
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
-      - name: Install cross
-        if: startsWith(matrix.target, 'x86_64-unknown') || startsWith(matrix.target, 'aarch64-unknown')
-        run: cargo install cross --git https://github.com/cross-rs/cross
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Build release binary
+      - name: Prepare tar/zip
         run: |
-          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            cross build --release --target ${{ matrix.target }}
+          mkdir dist
+          BIN_NAME=https_reverse   
+          ART=${BIN_NAME}-${{ matrix.target }}
+
+          if [[ "${{ matrix.target }}" == *"windows"* ]]; then
+            cp target/${{ matrix.target }}/release/${BIN_NAME}.exe dist/
+            zip -j ${ART}.zip dist/${BIN_NAME}.exe
           else
-            cargo build --release --target ${{ matrix.target }}
+            cp target/${{ matrix.target }}/release/${BIN_NAME} dist/
+            zip -j ${ART}.zip dist/${BIN_NAME}
           fi
 
-      - name: Package artifact
-        run: |
-          BIN_PATH=target/${{ matrix.target }}/release/${BIN_NAME}
-          ASSET_NAME=${BIN_NAME}-${GITHUB_REF_NAME}-${{ matrix.target }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: '*.zip'
 
-          if [[ "${{ matrix.archive }}" == "zip" ]]; then
-            zip -j "${ASSET_NAME}.zip" "$BIN_PATH"
-            echo "ASSET_NAME=${ASSET_NAME}.zip" >> $GITHUB_ENV
-          else
-            tar -czf "${ASSET_NAME}.tar.gz" -C target/${{ matrix.target }}/release ${BIN_NAME}
-            echo "ASSET_NAME=${ASSET_NAME}.tar.gz" >> $GITHUB_ENV
-          fi
+  release:
+    name: Publish Release
+    needs: build
+    runs-on: ubuntu-latest
 
-      - name: Publish GitHub Release
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.ASSET_NAME }}
+          files: ./artifacts/**/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
