@@ -38,15 +38,17 @@ jobs:
         if: matrix.rust_target == 'aarch64-unknown-linux-gnu'
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
       - name: Build binaries (Linux/Mac)
         if: matrix.os != 'windows-latest'
         env:
           CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
+          CXX_aarch64_unknown_linux_gnu: aarch64-linux-gnu-g++
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
           AWS_LC_SYS_SKIP_COMPILER_TESTS: 1
         run: |
+          mkdir -p dist/${{ matrix.artifact_name }}
           cargo build --release --target ${{ matrix.rust_target }}
           cp target/${{ matrix.rust_target }}/release/https_reverse dist/${{ matrix.artifact_name }}/https_reverse-${{ matrix.artifact_name }}
 
@@ -56,6 +58,7 @@ jobs:
           AWS_LC_SYS_SKIP_COMPILER_TESTS: 1
         shell: powershell
         run: |
+          New-Item -ItemType Directory -Force -Path "dist\${{ matrix.artifact_name }}" | Out-Null
           cargo build --release --target ${{ matrix.rust_target }}
           Copy-Item -Path "target\${{ matrix.rust_target }}\release\https_reverse.exe" -Destination "dist\${{ matrix.artifact_name }}\https_reverse-${{ matrix.artifact_name }}.exe"
 
