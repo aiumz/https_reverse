@@ -21,7 +21,7 @@
    ```
 
    - 证书写入 `./tmp/root_ca.pem`，私钥写入 `./tmp/root_ca_key.pem`。
-   - 命令会调用对应平台的工具自动信任该根证书。**首次运行必须执行本步骤；如需新增自定义域名，请在更新 hosts 后重新运行一次以签发新证书。**
+   - 命令会调用对应平台的工具自动信任该根证书。**首次运行必须执行本步骤**
 
 3. **编辑 `config.json`**  
    设置监听端口与路由规则（详见下节）。示例文件已覆盖多个 PingCode 产品线，可直接调整端口。
@@ -72,7 +72,6 @@ HTTPS reverse proxy running on port 443 ☺ ☺ ☺
 
 ## 常见问题
 
-- **证书未被信任**：确认 `cargo run -- trust_root_ca` 以管理员权限执行；Linux 需重新加载 `ca-certificates`。
-- **新域名 404 或证书无效**：补充 `hosts` 后需重新执行 `cargo run -- proxy` 以重新签发 `tmp/local.crt`。
+- **证书未被信任**：确认运行 `./https_reverse trust_root_ca` 时具备管理员权限；Linux 需重新加载 `ca-certificates`。
 - **WebSocket 403**：确保上游服务允许相应路径，并在 `rules` 中指向正确端口。
 - **没有执行权限**：下载解压后的二进制需手动授予执行权限，例如 `chmod +x https_reverse` 后再运行。
